@@ -48,29 +48,30 @@ RUN \
 # clean up: remove dependencies needed to compile wireguard (will download again if recompile is necessary)
 RUN yum -y remove \
     make gcc \
-    elfutils-libelf-devel kernel-devel pkgconfig "@Development Tools" \
-    kernel-devel kernel-headers kernel-tools perf linux-firmware
+    elfutils-libelf-devel pkgconfig "@Development Tools" \
+    kernel-devel-4.18.0-358.el8.x86_64 kernel-headers-4.18.0-358.el8.x86_64 kernel-tools-4.18.0-358.el8.x86_64 perf-4.18.0-358.el8.x86_64 linux-firmware
 
 # modify linuxserver wireguard scripts just slightly, so they work with centos-8-stream
 RUN sed -i '/^mkdir -p.*/a\
 sysctl net.ipv4.ip_forward=1\
-' /etc/cont-init.d/30-config
+' /etc/cont-init.d/30-module
 
 # ip link add dev test type wireguard wasn't failing without wireguard, using modprobe instead
-RUN sed -i 's/ip link add dev test type wireguard/modprobe -q wireguard/g' /etc/cont-init.d/30-config
-RUN sed -i 's/.*ip link del dev test.*//g' /etc/cont-init.d/30-config
+RUN sed -i 's/ip link add dev test type wireguard/modprobe -q wireguard/g' /etc/cont-init.d/30-module
+RUN sed -i 's/.*ip link del dev test.*//g' /etc/cont-init.d/30-module
 
 # add initial check for yum, this is how we check if its centos (replaces an if with and if & elseif)
 RUN sed -i 's/^  if apt-cache show linux-headers.*/\
   if [[ -f \/usr\/bin\/yum ]]; then\n\
     yum -y update\n\
     yum -y install elfutils-libelf-devel pkgconfig "@Development Tools"\n\
-    yum -y install kernel kernel-devel kernel-headers kernel-tools perf linux-firmware\n\
+    yum -y install kernel-devel-4.18.0-358.el8.x86_64 kernel-headers-4.18.0-358.el8.x86_64 kernel-tools-4.18.0-358.el8.x86_64 perf-4.18.0-358.el8.x86_64 linux-firmware\n\
+    yum -y install kernel-4.18.0-358.el8.x86_64 linux-firmware\n\
   elif apt-cache show linux-headers-$(uname -r) 2\&\>1 \>\/dev\/null; then\
-/g' /etc/cont-init.d/30-config
+/g' /etc/cont-init.d/30-module
 
 # abc:abc is erroring, replacing with PUID & PGID
-RUN sed -i 's/chown -R abc:abc/chown -R $PUID:$PGID/g' /etc/cont-init.d/30-config
+RUN sed -i 's/chown -R abc:abc/chown -R $PUID:$PGID/g' /etc/cont-init.d/40-confs
 
 # linuxserver wireguard uses s6 overlay, so we need to also
 ADD https://github.com/just-containers/s6-overlay/releases/download/v2.2.0.1/s6-overlay-amd64-installer /tmp/
