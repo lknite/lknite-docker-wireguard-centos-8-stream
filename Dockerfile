@@ -49,7 +49,7 @@ RUN \
 RUN yum -y remove \
     make gcc \
     elfutils-libelf-devel pkgconfig "@Development Tools" \
-    kernel-devel-4.18.0-358.el8.x86_64 kernel-headers-4.18.0-358.el8.x86_64 kernel-tools-4.18.0-358.el8.x86_64 perf-4.18.0-358.el8.x86_64 linux-firmware
+    kernel-devel kernel-headers kernel-tools perf linux-firmware
 
 # modify linuxserver wireguard scripts just slightly, so they work with centos-8-stream
 RUN sed -i '/^mkdir -p.*/a\
@@ -65,8 +65,8 @@ RUN sed -i 's/^  if apt-cache show linux-headers.*/\
   if [[ -f \/usr\/bin\/yum ]]; then\n\
     yum -y update\n\
     yum -y install elfutils-libelf-devel pkgconfig "@Development Tools"\n\
-    yum -y install kernel-devel-4.18.0-358.el8.x86_64 kernel-headers-4.18.0-358.el8.x86_64 kernel-tools-4.18.0-358.el8.x86_64 perf-4.18.0-358.el8.x86_64 linux-firmware\n\
-    yum -y install kernel-4.18.0-358.el8.x86_64 linux-firmware\n\
+    yum -y install kernel-devel-$(uname -r)  kernel-headers-$(uname -r)  kernel-tools-$(uname -r)  perf-$(uname -r) \n\
+    yum -y install kernel-$(uname -r)  linux-firmware\n\
   elif apt-cache show linux-headers-$(uname -r) 2\&\>1 \>\/dev\/null; then\
 /g' /etc/cont-init.d/30-module
 
